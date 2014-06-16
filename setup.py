@@ -34,10 +34,10 @@ setup(
     url='https://github.com/rhinception/re-worker-output',
     license='AGPLv3',
     package_dir={'replugin': 'replugin'},
-    packages=['replugin', 'replugin.output'],
+    packages=['replugin', 'replugin.outputworker'],
     entry_points={
         'console_scripts': [
-            're-worker-output = replugin.output:main',
+            're-worker-output = replugin.outputworker:main',
         ],
     }
 )
