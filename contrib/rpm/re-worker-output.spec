@@ -8,7 +8,7 @@
 %global _src_name reworkeroutput
 
 Name: re-worker-output
-Summary: TODO: Fill in summary
+Summary: Output collector for Release Engine
 Version: 0.0.1
 Release: 1%{?dist}
 
@@ -22,7 +22,8 @@ BuildRequires: python2-devel, python-setuptools
 Requires: re-worker
 
 %description
-TODO: Fill in description
+An output collector for Rease Engine which pulls messages from a queue
+and writes them out to the proper files.
 
 %prep
 %setup -q -n %{_src_name}-%{version}
