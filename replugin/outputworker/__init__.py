@@ -77,3 +77,7 @@ class OutputWorker(Worker):
 def main():  # pragma: no cover
     from reworker.worker import runner
     runner(OutputWorker)
+
+
+if __name__ == '__main__':  # pragma nocover
+    main()
