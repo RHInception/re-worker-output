@@ -20,47 +20,79 @@
 # values within it are expanded at DECLARATION time.
 
 ########################################################
+
+
 NAME := re-worker-output
+SHORTNAME := replugin
+TESTPACKAGE := replugin
 
 RPMSPECDIR := ./contrib/rpm/
 RPMSPEC := $(RPMSPECDIR)/re-worker-output.spec
 
-SRCDIR := replugin/outputworker
-
 sdist: clean
 	python setup.py sdist
-	rm -fR outputworker.egg-info
+	rm -fR $(SHORTNAME).egg-info
 
-tests: clean unittests pep8 pyflakes
+virtualenv:
+	@echo "#############################################"
+	@echo "# Creating a virtualenv"
+	@echo "#############################################"
+	virtualenv $(NAME)env
+	# There is nothing from requirements.txt we need (until reworker is in pypi).
+	. $(NAME)env/bin/activate && pip install pep8 nose coverage mock
+	# If there are any special things to install do it here
+	. $(NAME)env/bin/activate && pip install git+https://github.com/RHInception/re-worker.git
+
+ci-unittests:
+	@echo "#############################################"
+	@echo "# Running Unit Tests in virtualenv"
+	@echo "#############################################"
+	. $(NAME)env/bin/activate && nosetests -v --with-cover --cover-min-percentage=80 --cover-package=$(TESTPACKAGE) test/
+
+ci-list-deps:
+	@echo "#############################################"
+	@echo "# Listing all pip deps"
+	@echo "#############################################"
+	. $(NAME)env/bin/activate && pip freeze
+
+ci-pep8:
+	@echo "#############################################"
+	@echo "# Running PEP8 Compliance Tests in virtualenv"
+	@echo "#############################################"
+	. $(NAME)env/bin/activate && pep8 --ignore=E501,E121,E124 $(SHORTNAME)/
+
+ci: clean virtualenv ci-list-deps ci-pep8 ci-unittests
+	:
+
+
+tests: unittests pep8 pyflakes
 	:
 
 unittests:
 	@echo "#############################################"
 	@echo "# Running Unit Tests"
 	@echo "#############################################"
-	nosetests -v --with-cover --cover-min-percentage=80 --cover-package=replugin --cover-html test/
+	nosetests -v --with-cover --cover-min-percentage=80 --cover-package=$(TESTPACKAGE) test/
+
 
 clean:
 	@find . -type f -regex ".*\.py[co]$$" -delete
 	@find . -type f \( -name "*~" -or -name "#*" \) -delete
-	@rm -fR build dist rpm-build MANIFEST htmlcov .coverage outputworker.egg-info
+	@rm -fR build dist rpm-build MANIFEST htmlcov .coverage $(SHORTNAME).egg-info
+	@rm -rf $(NAME)env
 
 pep8:
 	@echo "#############################################"
 	@echo "# Running PEP8 Compliance Tests"
 	@echo "#############################################"
-	pep8 --ignore=E501,E121,E124 $(SRCDIR)
+	pep8 --ignore=E501,E121,E124 $(SHORTNAME)/
 
 pyflakes:
 	@echo "#############################################"
 	@echo "# Running Pyflakes Sanity Tests"
 	@echo "# Note: most import errors may be ignored"
 	@echo "#############################################"
-	-pyflakes $(SRCDIR)
-
-coverage:
-	nosetests -v --with-cover --cover-min-percentage=80 --cover-package=replugin --cover-html test/
-
+	-pyflakes src/$(SHORTNAME)
 
 rpmcommon: sdist
 	@mkdir -p rpm-build
@@ -75,8 +107,8 @@ srpm: rpmcommon
 	--define "_sourcedir %{_topdir}" \
 	-bs $(RPMSPEC)
 	@echo "#############################################"
-	@echo "$(NAME) SRPM is built:"
-	@find rpm-build -maxdepth 2 -name '$(NAME)*src.rpm' | awk '{print "    " $$1}'
+	@echo "Re-Core SRPM is built:"
+	@find rpm-build -maxdepth 2 -name 're-worker-output*src.rpm' | awk '{print "    " $$1}'
 	@echo "#############################################"
 
 rpm: rpmcommon
@@ -88,6 +120,6 @@ rpm: rpmcommon
 	--define "_sourcedir %{_topdir}" \
 	-ba $(RPMSPEC)
 	@echo "#############################################"
-	@echo "$(NAME) RPMs are built:"
-	@find rpm-build -maxdepth 2 -name '$(NAME)*.rpm' | awk '{print "    " $$1}'
+	@echo "Re-Core RPMs are built:"
+	@find rpm-build -maxdepth 2 -name 're-worker-output*.rpm' | awk '{print "    " $$1}'
 	@echo "#############################################"
