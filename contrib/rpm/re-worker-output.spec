@@ -10,7 +10,7 @@
 Name: re-worker-output
 Summary: Output collector for Release Engine
 Version: 0.0.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Group: Applications/System
 License: AGPLv3
@@ -35,9 +35,13 @@ and writes them out to the proper files.
 %{__python2} setup.py install -O1 --root=$RPM_BUILD_ROOT --record=re-worker-output-files.txt
 
 %files -f re-worker-output-files.txt
+%defattr(-, root, root)
 %doc README.md LICENSE AUTHORS
 %dir %{python2_sitelib}/%{_pkg_name}
 
 %changelog
+* Wed Jun 18 2014 Steve Milner <stevem@gnulinux.net> - 0.0.1-2
+- Defattr not being used in files section.
+
 * Mon Jun 16 2014 Tim Bielawa <tbielawa@redhat.com> - 0.0.1-1
 - First release
