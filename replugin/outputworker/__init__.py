@@ -65,6 +65,9 @@ class OutputWorker(Worker):
                 if not message.endswith('\n'):
                     message = message + '\n'
                 output_file.write(message)
+                # And include one additional empty line to separate
+                # different task outputs.
+                output_file.write('\n')
 
             # Send out responses
             self.app_logger.info('Wrote output for correlation_id %s' % (

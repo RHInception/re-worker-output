@@ -10,7 +10,7 @@
 Name: re-worker-output
 Summary: Output collector for Release Engine
 Version: 0.0.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Group: Applications/System
 License: AGPLv3
@@ -41,6 +41,9 @@ and writes them out to the proper files.
 %exclude %{python2_sitelib}/%{_pkg_name}/__init__.py*
 
 %changelog
+* Fri Jun 20 2014 Tim Bielawa <tbielawa@redhat.com> - 0.0.1-6
+- Include an empty separating line after each step result has been logged
+
 * Fri Jun 20 2014 Ryan Cook <rcook@redhat.com> - 0.0.1-5
 - Added exclude py*
 
