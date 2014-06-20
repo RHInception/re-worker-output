@@ -10,7 +10,7 @@
 Name: re-worker-output
 Summary: Output collector for Release Engine
 Version: 0.0.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Group: Applications/System
 License: AGPLv3
@@ -40,6 +40,9 @@ and writes them out to the proper files.
 %dir %{python2_sitelib}/%{_pkg_name}
 
 %changelog
+* Fri Jun 20 2014 Steve Milner <stevem@gnulinux.net> - 0.0.1-3
+- Fixed bug with reply_to.
+
 * Wed Jun 18 2014 Steve Milner <stevem@gnulinux.net> - 0.0.1-2
 - Defattr not being used in files section.
 

@@ -47,9 +47,10 @@ class OutputWorker(Worker):
         # Ack the original message
         self.ack(basic_deliver)
         corr_id = str(properties.correlation_id)
+        # TODO: decide if we need 'start/stop' for these kinds of workers
         # Notify we are starting
-        self.send(
-            properties.reply_to, corr_id, {'status': 'started'}, exchange='')
+        # self.send(
+        #    properties.reply_to, corr_id, {'status': 'started'}, exchange='')
 
         try:
             try:
