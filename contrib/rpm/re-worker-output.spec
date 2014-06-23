@@ -10,7 +10,7 @@
 Name: re-worker-output
 Summary: Output collector for Release Engine
 Version: 0.0.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Group: Applications/System
 License: AGPLv3
@@ -41,6 +41,10 @@ and writes them out to the proper files.
 %exclude %{python2_sitelib}/%{_pkg_name}/__init__.py*
 
 %changelog
+* Mon Jun 23 2014 Tim Bielawa <tbielawa@redhat.com> - 0.0.1-7
+- Revert extra new-line. It was added after every line, not just
+  'Finished' lines
+
 * Fri Jun 20 2014 Tim Bielawa <tbielawa@redhat.com> - 0.0.1-6
 - Include an empty separating line after each step result has been logged
 
