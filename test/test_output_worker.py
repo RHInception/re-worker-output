@@ -134,3 +134,44 @@ class TestSleepWorker(TestCase):
                 self.logger)
 
             assert self.app_logger.error.call_count == 1
+
+    def test_writing_messages_with_newlines(self):
+        """
+        Escaped \\n characters are translated into actual newlines
+        """
+        with nested(
+                mock.patch('pika.SelectConnection'),
+                mock.patch('replugin.outputworker.OutputWorker.notify'),
+                mock.patch('replugin.outputworker.OutputWorker.send'),
+                mock.patch('replugin.outputworker.open', create=True)) as (_, _, _, mock_open):
+            # http://www.voidspace.org.uk/python/weblog/arch_d7_2010_10_02.shtml
+            #
+            # "Mocking 'open'"
+            mock_open.return_value = mock.MagicMock(spec=file)
+            worker = outputworker.OutputWorker(
+                MQ_CONF,
+                logger=self.app_logger,
+                config_file='conf/example.json')
+
+            worker._on_open(self.connection)
+            worker._on_channel_open(self.channel)
+            # Send a message with the actual string '\n' in it. This
+            # should get translated into an actual newline character
+            body = {
+                'message': 'line1\\nline2'
+            }
+            written_msg = """line1
+line2
+"""
+            # Execute the call
+            worker.process(
+                self.channel,
+                self.basic_deliver,
+                self.properties,
+                body,
+                self.logger)
+
+            assert self.app_logger.error.call_count == 0
+            file_handle = mock_open.return_value.__enter__.return_value
+            print file_handle.write.called
+            file_handle.write.assert_called_with(written_msg)

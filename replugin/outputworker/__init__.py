@@ -64,6 +64,8 @@ class OutputWorker(Worker):
             with open(file_path, 'a') as output_file:
                 if not message.endswith('\n'):
                     message = message + '\n'
+                message = message.replace('\\n', "\n")
+                print "Going to write: %s" % message
                 output_file.write(message)
 
             # Send out responses
