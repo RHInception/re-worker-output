@@ -20,6 +20,8 @@ import os
 
 from reworker.worker import Worker
 
+from jinja2 import escape
+
 
 class OutputWorkerError(Exception):
     """
@@ -65,7 +67,9 @@ class OutputWorker(Worker):
                 if not message.endswith('\n'):
                     message = message + '\n'
                 message = message.replace('\\n', "\n")
-                print "Going to write: %s" % message
+                # escape HTML out
+                message = escape(message)
+                # If anyone wants to make things pretty with HTML start here
                 output_file.write(message)
 
             # Send out responses

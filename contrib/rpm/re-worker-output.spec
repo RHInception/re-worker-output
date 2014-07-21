@@ -21,6 +21,12 @@ BuildArch: noarch
 BuildRequires: python2-devel, python-setuptools
 Requires: re-worker
 
+%if 0%{?rhel} && 0%{?rhel} <= 6
+Requires: python-jinja2-26
+%else
+Requires: python-jinja2
+%endif
+
 %description
 An output collector for Rease Engine which pulls messages from a queue
 and writes them out to the proper files.

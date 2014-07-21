@@ -19,6 +19,8 @@ Unittests.
 import pika
 import mock
 
+from jinja2 import escape
+
 from contextlib import nested
 
 from . import TestCase
@@ -86,7 +88,11 @@ class TestSleepWorker(TestCase):
         with nested(
                 mock.patch('pika.SelectConnection'),
                 mock.patch('replugin.outputworker.OutputWorker.notify'),
-                mock.patch('replugin.outputworker.OutputWorker.send')):
+                mock.patch('replugin.outputworker.OutputWorker.send'),
+                mock.patch('replugin.outputworker.open', create=True)) as (
+                    _, _, _, mock_open):
+
+            mock_open.return_value = mock.MagicMock(spec=file)
             worker = outputworker.OutputWorker(
                 MQ_CONF,
                 logger=self.app_logger,
@@ -107,6 +113,46 @@ class TestSleepWorker(TestCase):
                 self.logger)
 
             assert self.app_logger.error.call_count == 0
+            mock_file = mock_open.return_value.__enter__.return_value
+            mock_file.write.assert_called_once_with(escape('testing'+'\n'))
+
+    def test_writing_a_message_with_html_gets_escaped(self):
+        """
+        Verify that if HTML makes it into a message it should be escaped.
+        """
+        with nested(
+                mock.patch('pika.SelectConnection'),
+                mock.patch('replugin.outputworker.OutputWorker.notify'),
+                mock.patch('replugin.outputworker.OutputWorker.send'),
+                mock.patch('replugin.outputworker.open', create=True)) as (
+                    _, _, _, mock_open):
+
+            mock_open.return_value = mock.MagicMock(spec=file)
+
+            worker = outputworker.OutputWorker(
+                MQ_CONF,
+                logger=self.app_logger,
+                config_file='conf/example.json')
+
+            worker._on_open(self.connection)
+            worker._on_channel_open(self.channel)
+            body = {
+                'message': '''<blink>testing</blink>
+
+<b>stuff</b><javascript>var a="b";'''
+            }
+
+            # Execute the call
+            worker.process(
+                self.channel,
+                self.basic_deliver,
+                self.properties,
+                body,
+                self.logger)
+
+            assert self.app_logger.error.call_count == 0
+            mock_file = mock_open.return_value.__enter__.return_value
+            mock_file.write.assert_called_once_with(escape(body['message']+'\n'))
 
     def test_executing_without_a_message(self):
         """
@@ -143,7 +189,8 @@ class TestSleepWorker(TestCase):
                 mock.patch('pika.SelectConnection'),
                 mock.patch('replugin.outputworker.OutputWorker.notify'),
                 mock.patch('replugin.outputworker.OutputWorker.send'),
-                mock.patch('replugin.outputworker.open', create=True)) as (_, _, _, mock_open):
+                mock.patch('replugin.outputworker.open', create=True)) as (
+                    _, _, _, mock_open):
             # http://www.voidspace.org.uk/python/weblog/arch_d7_2010_10_02.shtml
             #
             # "Mocking 'open'"
@@ -173,5 +220,4 @@ line2
 
             assert self.app_logger.error.call_count == 0
             file_handle = mock_open.return_value.__enter__.return_value
-            print file_handle.write.called
             file_handle.write.assert_called_with(written_msg)
