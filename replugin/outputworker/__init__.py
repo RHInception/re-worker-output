@@ -17,6 +17,7 @@
 Output worker.
 """
 import os
+import re
 
 from reworker.worker import Worker
 
@@ -34,6 +35,26 @@ class OutputWorker(Worker):
     """
     Worker which collects output messages and writes them out.
     """
+
+    def __init__(self, *args, **kwargs):
+        Worker.__init__(self, *args, **kwargs)
+        # There are no redactions by default
+        self._redaction_rx = None
+        # Attempt to pull redactions from the worker config
+        redaction_cfg = self._config.get('redactions', [])
+        if redaction_cfg:
+            # if redactions exist in the config then build a regex from
+            # the config to use for substitution.
+            redaction_rx_build = '('
+            for redaction in redaction_cfg:
+                redaction_str = '.*%s[^\\n]*\\n|' % redaction
+                self.app_logger.debug('Adding "%s"' % redaction)
+                redaction_rx_build += redaction_str
+            # Remove the last | and end the regex
+            redaction_rx_build = redaction_rx_build[0:-1] + ')'
+            self._redaction_rx = re.compile(redaction_rx_build)
+            self.app_logger.info('Redactions are turned on.')
+            self.app_logger.debug('Redaction RX: %s' % redaction_rx_build)
 
     def process(self, channel, basic_deliver, properties, body, output):
         """
@@ -69,6 +90,12 @@ class OutputWorker(Worker):
                 message = message.replace('\\n', "\n")
                 # escape HTML out
                 message = escape(message)
+                if self._redaction_rx:
+                    message, subbed = self._redaction_rx.subn(
+                        '[redacted]\n', message)
+                    if subbed:
+                        self.app_logger.info(
+                            'Redacted a line in corr_id %s' % corr_id)
                 # If anyone wants to make things pretty with HTML start here
                 output_file.write(message)
 

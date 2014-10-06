@@ -9,8 +9,8 @@
 
 Name: re-worker-output
 Summary: Output collector for Release Engine
-Version: 0.0.1
-Release: 8%{?dist}
+Version: 0.0.2
+Release: 1%{?dist}
 
 Group: Applications/System
 License: AGPLv3
@@ -47,6 +47,9 @@ and writes them out to the proper files.
 %exclude %{python2_sitelib}/%{_pkg_name}/__init__.py*
 
 %changelog
+* Mon Oct  6 2014 Steve Milner <stevem@gnulinux.net> - 0.0.2-1
+- String redaction in output added.
+
 * Tue Jul  1 2014 Tim Bielawa <tbielawa@redhat.com> - 0.0.1-8
 - Output with escaped new-line characters are now translated into real
   new-line characters

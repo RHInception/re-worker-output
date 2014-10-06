@@ -1,4 +1,7 @@
 {
     "queue": "output",
-    "output_dir": "/tmp/"
+    "output_dir": "/tmp/",
+    "redactions": [
+        "password"
+    ]
 }

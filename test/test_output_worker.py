@@ -116,6 +116,43 @@ class TestSleepWorker(TestCase):
             mock_file = mock_open.return_value.__enter__.return_value
             mock_file.write.assert_called_once_with(escape('testing'+'\n'))
 
+    def test_writing_a_message_will_redact_sensitive_output(self):
+        """
+        When the OutputWorker gets a message with data matching the
+        redacted config option it should redact the result.
+        """
+        with nested(
+                mock.patch('pika.SelectConnection'),
+                mock.patch('replugin.outputworker.OutputWorker.notify'),
+                mock.patch('replugin.outputworker.OutputWorker.send'),
+                mock.patch('replugin.outputworker.open', create=True)) as (
+                    _, _, _, mock_open):
+
+            mock_open.return_value = mock.MagicMock(spec=file)
+            worker = outputworker.OutputWorker(
+                MQ_CONF,
+                logger=self.app_logger,
+                config_file='conf/example.json')
+
+            worker._on_open(self.connection)
+            worker._on_channel_open(self.channel)
+            body = {
+                'message': 'a password\nanotherline\n'
+            }
+
+            # Execute the call
+            worker.process(
+                self.channel,
+                self.basic_deliver,
+                self.properties,
+                body,
+                self.logger)
+
+            assert self.app_logger.error.call_count == 0
+            mock_file = mock_open.return_value.__enter__.return_value
+            mock_file.write.assert_called_once_with(escape(
+                '[redacted]\nanotherline\n'))
+
     def test_writing_a_message_with_html_gets_escaped(self):
         """
         Verify that if HTML makes it into a message it should be escaped.
